@@ -8,6 +8,8 @@ __pycache__/
 datos_cache.parquet
 fuerzas_cache.parquet
 promedios_cache.json
+rho_cache.json
+xg_cache.json
 
 # IDE
 .vscode/
