@@ -116,8 +116,16 @@ def cargar_xg_csv(ruta_csv):
 
 
 # ──────────────────────────────────────────────
-# 3. DIXON-COLES ADJUSTMENT
+# 3. DIXON-COLES ADJUSTMENT + TIME DECAY
 # ──────────────────────────────────────────────
+
+def dc_decay(t, xi=0.002):
+    """Peso exponencial: down-weighting de partidos viejos.
+    xi=0.002 -> partido de hace 1 año pesa ~48%.
+    Martin Eastwood valido xi=0.00186 via RPS con train/test split.
+    """
+    return np.exp(-xi * t)
+
 
 def dc_tau(x, y, lam, mu, rho):
     """Factor de ajuste Dixon-Coles para resultados de 0-1 goles."""
@@ -233,15 +241,15 @@ def calcular_fuerzas(df, xg_data=None, ponderar_forma=True):
         away_goles_avg=('FTAG', 'mean')
     ).to_dict('index')
 
-    # Ponderacion por forma reciente
+    # Time decay exponencial: partidos recientes pesan mas
+    # Basado en Dixon-Coles original con xi ~ 0.002
     if ponderar_forma and 'Date' in df.columns:
         try:
             df['Date'] = pd.to_datetime(df['Date'], dayfirst=True, errors='coerce')
             fecha_max = df['Date'].max()
             if pd.notna(fecha_max):
                 df['dias_atras'] = (fecha_max - df['Date']).dt.days
-                df['peso'] = np.maximum(0, 1 - df['dias_atras'] / 180)  # 6 meses
-                df['peso'] = 0.3 + 0.7 * df['peso']  # Minimo 30% de peso
+                df['peso'] = dc_decay(df['dias_atras'].values, xi=0.002)
             else:
                 df['peso'] = 1.0
         except Exception:
@@ -489,9 +497,9 @@ def cargar_datos(force_download=False, usar_xg=False, xg_csv=None):
 
     # Descargar datos fresh
     print(">> Descargando datos historicos...")
-    df = descargar_varias_ligas(LIGAS.keys(), 2425)
+    df = descargar_varias_ligas(LIGAS.keys(), 2526)
     if df.empty:
-        df = descargar_varias_ligas(LIGAS.keys(), 2324)
+        df = descargar_varias_ligas(LIGAS.keys(), 2425)
     if df.empty:
         print("X No se pudieron descargar datos")
         return None, None, None, None, None
