@@ -1,0 +1,20 @@
+# Entorno virtual
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Cache de datos
+datos_cache.parquet
+fuerzas_cache.parquet
+promedios_cache.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema
+Thumbs.db
+.DS_Store
